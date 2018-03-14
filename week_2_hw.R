@@ -1,0 +1,29 @@
+library(httr)
+library(rvest)
+
+html_li <- "http://m.ltn.com.tw/breakingnews/politics"
+doc <- read_html(html_li)
+
+#取news link
+css <- "#rightmain > ul.news.boxTitle.boxpadding.noP > li > a"
+node_li <- html_nodes(doc , css)
+news_url <- html_attr(node_li, "href")
+news_url <- paste0("http://m.ltn.com.tw/" , news_url)
+View(news_url)
+
+
+#取news title ＆ time
+css_title <- "#rightmain > ul.news.boxTitle.boxpadding.noP > li > a > p"
+css_time <-  "#rightmain > ul.news.boxTitle.boxpadding.noP > li > a > span"
+node_title <- html_nodes(doc, css_title)
+node_time <- html_nodes(doc, css_time)
+news_title <- html_text(node_title)
+news_time <- html_text(node_time)
+typeof(news_title)
+
+#建立新聞df
+newsbox_li <- data.frame("新聞"= news_title, "發布時間"= news_time, "連結"=news_url)
+View(newsbox_li)
+
+
+
