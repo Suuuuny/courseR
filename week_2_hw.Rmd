@@ -1,6 +1,6 @@
 ---
 title: "hw_2"
-output: html_document
+output: 自由時報新聞爬蟲
 ---
 
 ```{r}
