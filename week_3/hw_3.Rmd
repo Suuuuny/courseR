@@ -1,6 +1,6 @@
 ---
 title: "hw_3"
-output:獨立演唱會畫圖
+output: 獨立演唱會畫圖
 ---
 
 爬Json檔並簡單整理dataframe
