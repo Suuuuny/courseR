@@ -79,12 +79,29 @@ for ( i in year) {
 # 2. 玩家可重覆猜電腦所產生的數字，並提示猜測的結果(EX:1A2B)
 # 3. 一旦猜對，系統可自動計算玩家猜測的次數
 
-sample(0:9, 4)
+nums <- rep(0:9)
+ans <- sample(nums)[0:4]
+print(ans)
 
-Guessnum <- readline(prompt="Guess A Number: ")
-
-
-
+a = 0
+counter = 0
+while(a != 4){
+  guess <- readline(prompt="Enter an integer: ")
+  guess = as.numeric(unlist(strsplit(guess, "")))  
+  a = 0
+  b = 0
+  for( i in c(1:4) ) {
+    if( guess[i] == ans[i]) {
+      a = a+1
+    }
+    else if((guess[i] %in% ans) == TRUE) {
+      b = b+1
+    }
+  }
+  sprintf("%dA%dB", a, b)
+  counter = counter + 1
+}
+sprintf("猜了%d次", counter)
 
 
 
