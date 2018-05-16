@@ -1,0 +1,84 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+1. 以iris作Apriori的資料集，
+   查看資料型態，希望用前四項花萼花瓣的大小預測花的種類。
+
+```{r}
+rm(list=ls())
+library(magrittr)
+datasets::iris
+str(iris)
+data <- iris
+data$Species <- data$Species %>% as.factor() #跑Apriori要將變項變成factor
+summary(data)
+
+```
+
+2.根據Titanic的範例，推測要用來跑Apriori的變數要分群，因為iris的前四個變項都是數值，所以要先將他們分群。
+2.1決定將Sepal.Lengh, Sepal.Width, Petal.Length, Petal.Width分成 small, median, large三群，所以寫成function。
+```{r}
+Class<- function(Ary){
+  DATA = c()
+  Min = min(Ary)
+  Max = max(Ary)
+  Inter = (Max - Min)/3
+  
+  Output <- sapply(Ary,function(x){
+    if(Min<= x && x < Min+Inter){
+      DATA=c(DATA,"small")
+    }else if(Min+Inter<= x && x < Min+Inter*2){
+      DATA=c(DATA,"median")
+    }else if(Min+Inter*2<= x && x <= Min+Inter*3){
+      DATA=c(DATA,"large")
+    }
+  })
+  return(Output)
+}  
+```
+
+2.2將轉換成small, median, large的四個變項變成factor.
+```{r}
+data$Sepal.Length <- Class(data$Sepal.Length) %>% as.factor()
+data$Sepal.Width <- Class(data$Sepal.Width) %>% as.factor()
+data$Petal.Length <- Class(data$Petal.Length) %>% as.factor()
+data$Petal.Width <- Class(data$Petal.Width) %>% as.factor()
+```
+
+
+3.跑Apriori
+```{r}
+require(arules) #apriori的套件
+
+rule <- apriori(data, 
+  parameter = list(minlen=4, supp=0.1, conf=0.7),
+  appearance = list(default = "lhs",
+                    rhs = c("Species=setosa", "Species=versicolor", "Species=virginica")))
+#注意rhs = c("Species=setosa", ....)裡的＝兩邊不能有空格。
+```
+
+
+3.1
+```{r}
+#觀察rule
+inspect(rule)
+sort.rule <- sort(rule, by="lift") #用lift做排序
+inspect(sort.rule)
+```
+
+
+4.畫圖
+```{r}
+require(arulesViz)
+plot(sort.rule)
+plot(sort.rule, method="graph", control=list(type="items"))
+plot(sort.rule, method="grouped")
+```
+
+
+5. 看圖說話
+5.1 第一張圖可以看出我們的信度很高，推測是因為植物可能有自己生長規則在裡面，所以很容易依憑花萼和花瓣的大小就得出種類。
+5.2 還是不太懂lift的意思。
+5.3 圓圈圈的大小是代表support的高低；圓圈圈顏色深淺是lift。所以花瓣屬於又寬又長，屬於virginica的在資料集出現是最多的；花瓣屬於中間寬中間長，屬於Versicolor的在資料集出現的次數是第二高；花萼的長度是短的、花瓣的長度也是短的，屬於setosa的在資料集出現的次數第三多。
