@@ -1,0 +1,228 @@
+---
+title: "hw_5"
+---
+
+
+1.爬張愛玲中篇小說：第一爐香、輕城之戀、金鎖記、紅玫瑰與白玫瑰
+```{r}
+library(rvest)
+library(httr)
+
+link1 <- "https://www.book100.com/novel/3/104040/271589.html"
+link2 <- "https://www.book100.com/novel/3/104040/271591.html"
+link3 <- "https://www.book100.com/novel/3/104040/271605.html"
+link4 <- "https://www.book100.com/novel/3/104040/271606.html"
+
+crawl_novel <- function(URL){
+  doc <- read_html(URL)
+  node <- html_nodes(doc, ".content")
+  novel <- html_text(node)
+  return(novel)
+}
+
+novel1 <- crawl_novel(link1)
+novel2 <- crawl_novel(link2)
+novel3 <- crawl_novel(link3)
+novel4 <- crawl_novel(link4)
+
+novel <- rbind(novel1[1], novel2[1], novel3[1], novel4[1])
+```
+
+2.斷詞
+```{r}
+#載做TF-IDF的套件
+library(NLP)
+library(tm)
+library(stats)
+library(proxy)
+library(dplyr)
+library(readtext)
+library(jiebaRD)
+library(jiebaR)
+library(slam)
+library(Matrix)
+library(tidytext)
+
+docs = Corpus(VectorSource(novel))
+# data clean
+toSpace <- content_transformer(function(x, pattern) {
+  return (gsub(pattern, " ", x))
+})
+docs <- tm_map(docs, removePunctuation)
+docs <- tm_map(docs, removeNumbers)
+docs <- tm_map(docs, stripWhitespace)
+docs <- tm_map(docs, toSpace, "[a-zA-Z]")
+
+# words cut
+keywords = c("喬琪", "嬌蕊", "杜季澤", "范柳原", "曹七巧", "白流蘇", "葛薇龍", "薇龍", "長安", "睨兒", "睇睇", "吉婕", "振保", "姜長白", "姜長安", "芝壽", "王士洪", "蘭仙") #不要被斷的詞
+mixseg = worker()
+keys = as.matrix(keywords)
+new_user_word(mixseg, keys)
+
+jieba_tokenizer = function(d){
+  unlist(segment(d[[1]], mixseg))
+}
+seg = lapply(docs, jieba_tokenizer)
+freqFrame = as.data.frame(table(unlist(seg)))
+
+d.corpus <- Corpus(VectorSource(seg))
+tdm <- TermDocumentMatrix(d.corpus)
+tf <- as.matrix(tdm)
+print(head(tf))
+DF <- tidy(tf)
+
+```
+
+3.建立TF-IDF
+```{r}
+# tf-idf computation
+N = tdm$ncol
+tf <- apply(tdm, 2, sum)
+idfCal <- function(word_doc)
+{ 
+  log2( N / nnzero(word_doc) ) 
+}
+idf <- apply(tdm, 1, idfCal)
+
+doc.tfidf <- as.matrix(tdm)
+for(x in 1:nrow(tdm))
+{
+  for(y in 1:ncol(tdm))
+  {
+    doc.tfidf[x,y] <- (doc.tfidf[x,y] / tf[y]) * idf[x]
+  }
+}
+
+findZeroId = as.matrix(apply(doc.tfidf, 1, sum))
+tfidfnn = doc.tfidf[-which(findZeroId == 0),]
+
+#存檔
+write.csv(tfidfnn, "tfidfnn.csv")
+```
+
+
+4.1觀察TF-IDF
+```{r}
+freq=rowSums(as.matrix(doc.tfidf))
+high.freq=head(sort(freq, decreasing=TRUE),n=100)
+high.freq
+
+#看每一篇novel的TF-IDF值前20的詞
+freq1 <- head(sort(doc.tfidf[, 1], decreasing=TRUE),n=20)
+freq1
+freq2 <- head(sort(doc.tfidf[, 2], decreasing=TRUE),n=20)
+freq2
+freq3 <- head(sort(doc.tfidf[, 3], decreasing=TRUE),n=20)
+freq3
+freq4 <- head(sort(doc.tfidf[, 4], decreasing=TRUE),n=20)
+freq4
+
+```
+發現無論是全部裡面TF-IDF值較高的詞或是單篇文本裡面TF-IDF值較高的詞，有很大部分是人名。但我比較想知道的是，張在這四篇小說時裡特別愛用的詞。因此想說換成是限定詞的長度，找出詞的長度等於一與三的情況下（不用長度是二的詞是因為人名多是兩個字），觀察這四篇小說所呈現出的結果。
+
+4.2 找出四篇文本裡面，斷詞長度等於1與3的情況下，TF-IDF值較高的前十個詞。
+
+```{r}
+text1 <- data.frame(doc.tfidf[ ,1])
+one_word1 <- data.frame()
+for(i in 1:length(rownames(text1 ))) {
+  if(nchar(rownames(text1 )[i]) == 1) {
+    one_word1 <- rbind(one_word1, c(rownames(text1 )[i],text1 [i,]))
+  }
+}
+
+one_word1 <- one_word1[order(one_word1$X.0.),]
+tail(one_word1$X.一., n=10)
+
+three_word1 <- data.frame()
+for(i in 1:length(rownames(text1 ))) {
+  if(nchar(rownames(text1 )[i]) == 3) {
+    three_word1 <- rbind(three_word1, c(rownames(text1)[i],text1 [i,]))
+  }
+}
+
+three_word1 <- three_word1[order(three_word1$X.0.),]
+tail(three_word1$X.一代人., n=10)
+
+
+```
+
+```{r}
+text2 <- data.frame(doc.tfidf[ ,2])
+one_word2 <- data.frame()
+for(i in 1:length(rownames(text2))) {
+  if(nchar(rownames(text2)[i]) == 1) {
+    one_word2 <- rbind(one_word2, c(rownames(text2)[i],text2[i,]))
+  }
+}
+
+one_word2 <- one_word1[order(one_word2$X.0.),]
+tail(one_word2$X.一., n=10)
+
+three_word2 <- data.frame()
+for(i in 1:length(rownames(text2))) {
+  if(nchar(rownames(text2)[i]) == 3) {
+    three_word2 <- rbind(three_word2, c(rownames(text2)[i],text2[i,]))
+  }
+}
+
+three_word2 <- three_word2[order(three_word2$X.0.),]
+tail(three_word2$X.一代人., n=10)
+```
+
+```{r}
+text3 <- data.frame(doc.tfidf[ ,3])
+one_word3 <- data.frame()
+for(i in 1:length(rownames(text3))) {
+  if(nchar(rownames(text3)[i]) == 1) {
+    one_word3 <- rbind(one_word3, c(rownames(text3)[i],text3[i,]))
+  }
+}
+
+one_word3 <- one_word3[order(one_word3$X.0.),]
+tail(one_word3$X.一., n=10)
+
+three_word3 <- data.frame()
+for(i in 1:length(rownames(text3))) {
+  if(nchar(rownames(text3)[i]) == 3) {
+    three_word3 <- rbind(three_word3, c(rownames(text3)[i],text3[i,]))
+  }
+}
+
+three_word3 <- three_word3[order(three_word3$X.0.),]
+tail(three_word3$X.一代人., n=10)
+```
+
+```{r}
+text4 <- data.frame(doc.tfidf[ ,4])
+one_word4 <- data.frame()
+for(i in 1:length(rownames(text4))) {
+  if(nchar(rownames(text4)[i]) == 1) {
+    one_word4 <- rbind(one_word4, c(rownames(text4)[i],text4[i,]))
+  }
+}
+
+one_word4 <- one_word4[order(one_word4$X.0.),]
+tail(one_word4$X.一., n=10)
+
+three_word4 <- data.frame()
+for(i in 1:length(rownames(text4))) {
+  if(nchar(rownames(text4)[i]) == 3) {
+    three_word4 <- rbind(three_word4, c(rownames(text4)[i],text4[i,]))
+  }
+}
+
+three_word4 <- three_word4[order(three_word4$X.0.),]
+tail(three_word4$X.一代人., n=10)
+```
+各挑了四篇文本裡面TF-IDF值前十高的詞之後，長度為3的詞，的確可以隱約看出文本的基調或符合某些內容，例如第二篇文本出現了『我愛你』這個詞，確實是因為傾城之戀是張愛玲筆下少數勉強算圓滿的愛情故事（且男主角擅長油腔滑調lol）；此外如第四篇文本出現『外國人』、『英國人』，這是因為《紅玫瑰與白玫瑰》的故事主角曾經在國外留學過。長度為1的詞，我覺得可看出的意涵則不大。
+
+
+結論：
+1.起初以為文學作品做文字探勘應該十分偷甲步，因為部分日常覺得冗贅的詞，可能是作家偏好或帶有某些意象，因此不能隨意刪去，這也意味著在文字清理的部分就可以少做工。但後來發現文學作品做文字探勘的麻煩之處在於，如何處理保留詞！除了大量的人名以外，一些地域時空慣用詞、狀聲詞等，有時間的話，都應該多次檢視讀本，整理下來。
+
+2.另外遇到的困難是，斷完的詞過多，我不知道如何擷取有效資訊。除了上面用斷詞長度觀察以外，我原先有想到可以觀察用同一個開頭的斷詞們，例如以「一」開頭的，一次、一生、一串等，之後要做類似的分析可以試試看。
+
+3.視覺化的部分，似乎只想到文字雲，不知道還有沒有其他比較適合的呈現方式。
+
+
