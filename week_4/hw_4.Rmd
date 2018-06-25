@@ -1,6 +1,5 @@
 ---
 title: "hw_4"
-output: html_notebook
 ---
 
 1.爬蟲
