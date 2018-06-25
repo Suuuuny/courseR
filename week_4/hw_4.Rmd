@@ -1,0 +1,102 @@
+---
+title: "hw_4"
+output: html_notebook
+---
+
+1.爬蟲
+```{r}
+library(httr)
+library(jsonlite)
+library(plyr)
+library(jiebaR)
+library(tidyverse)
+options(stringsAsFactors = F)
+
+
+# furl <- 
+#  "https://graph.facebook.com/v3.0/cnn?fields=posts.limit(100)&access_token=EAACEdEose0cBAHVwo5zQFWE5hUSyw848KZB6D6fP4LmBboGIOlhZACl4jQS05ZCbIZAZCaWyPna9oAckVkw6oh6Gcx3XihuJLvwtjv6xtF1BeotikH5JzR76HbHTJZC7mqyH5wb2239n2M0vVOK0OdnRKqkQSjZBAZAPeEiUQqUMtyuZBctc3AhMTZCODBzaSIeZBwsph0QB8seOgZDZD"
+# 
+# cnnpost <- fromJSON(httr::content(GET(furl), "text"))
+# cnndf <- as.data.frame(cnnpost$posts$data)
+# next_link <- cnnpost$posts$paging$"next"
+# 
+# next_post <- fromJSON(httr::content(GET(next_link), "text"))
+# cnndf <- rbind(cnndf, next_post$data)
+# 
+# #測試有無抓到重複的
+# unique(cnndf$created_time)
+# 
+# #存檔
+# saveRDS(cnndf, "cnnpost.rds")
+```
+
+
+2.讀檔、清詞
+```{r}
+cnndf <- readRDS("cnnpost.rds")
+cnnpost <- cnndf$message
+
+#要做文字雲用的套件
+library(NLP)
+library(tm)
+library(jiebaRD)
+library(jiebaR)
+library(RColorBrewer)
+library(wordcloud)
+
+#要清洗掉的東西
+docs <- Corpus(VectorSource(cnnpost))
+
+#定義清洗：清洗就是把你找到的符號用空白取代
+toSpace <- content_transformer(function(x, pattern) {
+  return (gsub(pattern, " ", x))
+})
+
+# 刪去單詞贅字、英文字母、標點符號、數字與空格
+docs <- tm_map(docs,toSpace,"the")
+docs <- tm_map(docs,toSpace, "of")
+docs <- tm_map(docs,toSpace, "with")
+docs <- tm_map(docs,toSpace, "for")
+docs <- tm_map(docs,toSpace, "of")
+docs <- tm_map(docs,toSpace, "about")
+docs <- tm_map(docs,toSpace, "this")
+docs <- tm_map(docs,toSpace, "that")
+docs <- tm_map(docs,toSpace, "these")
+docs <- tm_map(docs,toSpace, "those")
+docs <- tm_map(docs,toSpace, "in")
+docs <- tm_map(docs,toSpace, "from")
+docs <- tm_map(docs,toSpace, "as")
+docs <- tm_map(docs,toSpace, "or")
+docs <- tm_map(docs,toSpace, "to")
+docs <- tm_map(docs,toSpace,"and")
+docs <- tm_map(docs,toSpace,"but")
+docs <- tm_map(docs,toSpace,"\n")
+docs <- tm_map(docs, removeNumbers) #remove numbers
+docs <- tm_map(docs, removePunctuation) #removePunctuation移除的是半形標點符號
+
+mixseg = worker()
+```
+
+
+
+```{r}
+#有詞頻之後就可以去畫文字雲
+jieba_tokenizer=function(d){
+  unlist(segment(d[[1]],mixseg))
+}
+seg = lapply(docs, jieba_tokenizer)
+freqFrame = as.data.frame(table(unlist(seg)))
+
+#畫出文字雲
+wordcloud(freqFrame$Var1,freqFrame$Freq,
+          min.freq=10,
+          random.order=TRUE,random.color=TRUE, 
+          rot.per=.1, colors=rainbow(length(row.names(freqFrame))),
+          ordered.colors=FALSE,use.r.layout=FALSE,
+          fixed.asp=TRUE)
+
+```
+
+
+
+
