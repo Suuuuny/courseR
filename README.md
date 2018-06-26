@@ -94,8 +94,9 @@ Final_Project
 * 作業主題：選戰懶人包
 * 完成型態：小組
 * 作業簡介：依據2018年1-5月四大報新聞媒體文章、Facebook社群做文本分析與情緒分析，來探究台北市三大候選人(柯文哲、丁守中、姚文智)的關注議題、受眾(社群）有感議題、以及媒體對於這三位候選人的關注議題，與報導是否有偏頗傾向。<br />
-* 作業連結：[Final_Project_Rshiny](https://dppss90008.shinyapps.io/news_shiny/)<br />
-           [Final_Project_PPT](https://docs.google.com/presentation/d/1p2vua3FNWMaGRWYAarCJ8WTwRFNiI9LmvhUbOLukDQY/edit#slide=id.p)<br />
+* 作業連結：<br />
+  [Final_Project_Rshiny](https://dppss90008.shinyapps.io/news_shiny/)<br />
+  [Final_Project_PPT](https://docs.google.com/presentation/d/1p2vua3FNWMaGRWYAarCJ8WTwRFNiI9LmvhUbOLukDQY/edit#slide=id.p)<br />
 * [資料](https://github.com/Suuuuny/NTU-CSX-DataScience-group5)<br />
 * 結語：<br />
   分析完所有數值資料，用一句話形容候選人 :<br />
