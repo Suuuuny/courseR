@@ -84,7 +84,7 @@ Week_10
 ------
 * 作業主題：機器學習nnet
 * 完成型態：小組
-* 作業簡介：使用R資料集 iris 資料，練習建模。
+* 作業簡介：使用wine資料，練習建模。
 * 作業連結：[Project_5](https://weber12321.github.io/Weber1234/Project5/project.html)<br />
 * [資料](https://github.com/dppss90008/NTU-CSX-DataScience--Group5/tree/master/Project5)<br />
 
