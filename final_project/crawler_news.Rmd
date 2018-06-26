@@ -1,0 +1,65 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+#搜尋頁面網址爬蟲
+library(httr)
+library(rvest)
+
+udn_head_url <- "https://udn.com/search/result/2/%E6%9F%AF%E6%96%87%E5%93%B2/"
+url.link <- c()
+for( i in 1:10) {
+  url <- paste0(udn_head_url , i )
+  url.link <- rbind(url.link , url )
+}
+
+#爬每一篇新聞的網址
+links <- c()
+for ( n in 1:length(url.link)) {
+  print(n)
+  doc <- read_html(url.link[n])
+  css <- "#search_content > dt > a"
+  node <- html_nodes(doc, css)
+  link <- html_attrs(node) 
+  links <- rbind(links, link)
+}
+
+
+t.links <- links[1:100]
+t.links <- unlist(t.links)
+t.links <- matrix(t.links , byrow = T , ncol = 2)
+t.links <- t.links[ , 1 ] 
+
+#爬每一篇新聞的標題、時間、內文
+t.doc <-  read_html(t.links[1]) 
+title.node <- html_node(t.doc, "#story_art_title")
+t.title <- html_text(title.node)
+time.node <- html_node(t.doc, "#story_bady_info > div > span")
+t.time <- html_text(time.node)
+text.node <- html_nodes(t.doc, "#story_body_content > p")
+t_text <- html_text(text.node)
+
+# 1.將內文變成一筆資料
+text <- ""
+for(i in c(1:length(t_text))){
+  text <- paste(text,t_text[i])  
+}
+
+doc_test <- cbind(t.title, text)
+
+
+
+
+
+
+# 2.將上述寫成function
+# 3.跑所有連結
+
+#存檔（爬到五月底）
+```
+
+
+
+
