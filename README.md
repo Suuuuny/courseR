@@ -65,8 +65,8 @@ Week_8
 * 作業連結：[Project_3](https://dppss90008.github.io/NTU-CSX-DataScience--Group5/Project3/TitanicVariable_final.html)<br />
 * [資料](https://github.com/dppss90008/NTU-CSX-DataScience--Group5/tree/master/Project3)<br />
   >心得：<br />
-  >1.boat變數對於模型的準確率提升非常大！
-  >2.body欄位不知意義為何，我們猜有填寫的應該是罹難者，因此也有納入模型。
+  >1.boat變數對於模型的準確率提升非常大！<br />
+  >2.body欄位不知意義為何，我們猜有填寫的應該是罹難者，因此也有納入模型。<br />
 
 
 Week_9
